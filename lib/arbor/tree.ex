@@ -129,13 +129,14 @@ defmodule Arbor.Tree do
             UNION ALL
               SELECT #{opts[:table_name]}.#{opts[:primary_key]},
                     #{opts[:table_name]}.#{opts[:foreign_key]},
-                    #{opts[:tree_name]}.depth + 1
+                    #{opts[:tree_name]}.depth + 1 AS depth
               FROM #{opts[:table_name]}
                 JOIN #{opts[:tree_name]}
                 ON #{opts[:tree_name]}.#{opts[:foreign_key]} = #{opts[:table_name]}.#{opts[:primary_key]}
             )
             SELECT *
             FROM #{opts[:tree_name]}
+            ORDER BY #{opts[:tree_name]}.depth DESC
           )
           """), type(^struct.unquote(opts[:primary_key]), unquote(opts[:primary_key_type]))),
           on: t.unquote(opts[:primary_key]) == g.unquote(opts[:foreign_key])
@@ -154,7 +155,7 @@ defmodule Arbor.Tree do
                 WHERE #{opts[:foreign_key]} = ?
               UNION ALL
                 SELECT #{opts[:table_name]}.#{opts[:primary_key]},
-                       #{opts[:tree_name]}.depth + 1
+                       #{opts[:tree_name]}.depth + 1 AS depth
                 FROM #{opts[:table_name]}
                   JOIN #{opts[:tree_name]}
                   ON #{opts[:table_name]}.#{opts[:foreign_key]} = #{opts[:tree_name]}.#{
@@ -163,6 +164,7 @@ defmodule Arbor.Tree do
                 WHERE #{opts[:tree_name]}.depth + 1 < ?
               )
               SELECT #{opts[:primary_key]} FROM #{opts[:tree_name]}
+              ORDER BY #{opts[:tree_name]}.depth ASC
               """),
               type(^struct.unquote(opts[:primary_key]), unquote(opts[:foreign_key_type])),
               type(^depth, :integer)
